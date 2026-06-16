@@ -1,0 +1,1063 @@
+<!DOCTYPE html>
+<html lang="zh-TW"><head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>🧬 海星高中 生物課程教學資源中心</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&display=swap" rel="stylesheet">
+  <style>
+    body { font-family: 'Noto Sans TC', sans-serif; }
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: #0f172a; }
+    ::-webkit-scrollbar-thumb { background: #334155; border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: #475569; }
+  </style>
+</head>
+<body class="bg-slate-900 text-slate-100 min-h-screen flex flex-col">
+
+  <!-- 管理模式提示橫幅 -->
+  <div id="admin-banner" class="bg-emerald-600 text-white px-4 py-2 text-center text-xs font-semibold flex items-center justify-center gap-3 transition-all duration-300 hidden">
+    <span>⚠️ 管理編輯模式啟用 - 修改僅限本機儲存，上傳至 GitHub 才算生效</span>
+    <div class="flex flex-wrap gap-2 justify-center">
+      <button onclick="openExportModal()" class="bg-emerald-500 hover:bg-emerald-400 text-white px-3 py-1 rounded shadow text-[11px] font-bold transition">
+        💾 匯出最新 HTML
+      </button>
+      <button onclick="toggleAdminMode()" class="bg-slate-800 hover:bg-slate-700 text-slate-200 px-3 py-1 rounded shadow text-[11px] transition">
+        ❌ 關閉管理
+      </button>
+    </div>
+  </div>
+
+  <!-- 頂部導航欄 -->
+  <header class="border-b border-slate-800 bg-slate-900/80 backdrop-blur sticky top-0 z-40">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      <div class="flex items-center space-x-3 min-w-0">
+        <span class="text-2xl shrink-0">🧬</span>
+        <div class="truncate">
+          <h1 class="text-lg font-bold text-white tracking-wide truncate">海星高中 生物教學資源中心</h1>
+          <p class="text-xs text-slate-400 truncate hidden xs:block">高中生物課程教材、教案、影片、實驗與互動工具</p>
+        </div>
+      </div>
+      
+      <div class="flex items-center space-x-3 shrink-0 ml-4">
+        <button id="admin-mode-toggle" onclick="toggleAdminMode()" class="text-xs bg-slate-800 hover:bg-slate-700 text-slate-300 px-3.5 py-2 rounded-lg border border-slate-700 transition flex items-center gap-1.5 font-medium shadow-sm shrink-0"><span>⚙️</span> <span class="hidden sm:inline">管理編輯</span></button>
+        <button onclick="openGuideModal()" class="text-xs bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-300 px-3 py-2 rounded-lg border border-emerald-500/30 transition flex items-center gap-1.5 font-medium shadow-sm shrink-0">
+          <span>📖</span> <span class="hidden sm:inline">使用說明</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- 通知訊息框 -->
+  <div id="toast-notification" class="fixed top-20 right-4 z-50 bg-emerald-600 text-white px-4 py-3 rounded-xl shadow-2xl border border-emerald-400 flex items-center gap-2 transform transition-all duration-300 translate-x-72 opacity-0">
+    <span id="toast-icon">✅</span>
+    <span id="toast-message">資源已新增！</span>
+  </div>
+
+  <!-- 主內容區 -->
+  <main class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 flex flex-col md:flex-row gap-8">
+    
+    <!-- 左側邊欄：課程與資源類型 -->
+    <aside class="w-full md:w-64 shrink-0 space-y-6">
+      <!-- 課程年級 -->
+      <div class="bg-slate-800/50 border border-slate-800 rounded-xl p-5">
+        <div class="flex items-center justify-between mb-4">
+          <h2 class="text-sm font-semibold text-slate-400 uppercase tracking-wider">📚 課程年級</h2>
+          <button id="admin-add-large" onclick="openCategoryModal(null, false)" class="text-xs bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 hover:bg-emerald-500/30 px-2 py-0.5 rounded transition hidden">
+            ➕ 新增
+          </button>
+        </div>
+        <div id="large-category-menu" class="space-y-2"></div>
+      </div>
+
+      <!-- 資源類型 -->
+      <div class="bg-slate-800/50 border border-slate-800 rounded-xl p-5">
+        <div class="flex items-center justify-between mb-4">
+          <h2 class="text-sm font-semibold text-slate-400 uppercase tracking-wider">📂 資源類型</h2>
+          <button id="admin-add-sub" onclick="openCategoryModal(null, true)" class="text-xs bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 hover:bg-emerald-500/30 px-2 py-0.5 rounded transition hidden">
+            ➕ 新增
+          </button>
+        </div>
+        <div id="sub-category-menu" class="space-y-2 text-sm text-slate-300"><p class="text-xs text-slate-500 italic">請先選擇課程年級</p></div>
+      </div>
+    </aside>
+
+    <!-- 右側內容區 -->
+    <section class="flex-grow space-y-6">
+      
+      <!-- 搜尋欄 -->
+      <div class="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-4 bg-slate-800/40 p-4 rounded-xl border border-slate-800">
+        <div class="relative flex-grow max-w-md">
+          <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400">🔍</span>
+          <input type="text" id="search-input" placeholder="搜尋教材名稱、主題或關鍵字..." class="w-full pl-9 pr-4 py-2 bg-slate-900 border border-slate-700 rounded-lg text-slate-100 placeholder-slate-500 focus:outline-none focus:border-emerald-500 transition text-sm">
+        </div>
+        
+        <!-- 資源難度篩選 -->
+        <div class="flex items-center gap-1.5 bg-slate-950 p-1 rounded-lg border border-slate-800 text-xs text-slate-400">
+          <button id="type-filter-all" onclick="setTypeFilter('all')" class="px-3 py-1.5 rounded-md font-medium bg-emerald-600 text-white transition">全部</button>
+          <button id="type-filter-basic" onclick="setTypeFilter('basic')" class="px-3 py-1.5 rounded-md font-medium text-slate-400 hover:text-slate-200 transition">基礎</button>
+          <button id="type-filter-advanced" onclick="setTypeFilter('advanced')" class="px-3 py-1.5 rounded-md font-medium text-slate-400 hover:text-slate-200 transition">進階</button>
+        </div>
+
+        <div class="flex items-center space-x-2 text-xs text-slate-400 shrink-0">
+          <span>顯示</span>
+          <span id="filtered-count" class="font-bold text-emerald-400 text-sm">8</span>
+          <span>/</span>
+          <span id="total-count">8</span>
+          <span>項資源</span>
+        </div>
+      </div>
+
+      <!-- 篩選指示 -->
+      <div id="filter-indicator" class="flex flex-wrap items-center gap-2 hidden">
+        <span class="text-xs text-slate-400">目前篩選：</span>
+        <span id="filter-tags-container" class="flex flex-wrap gap-2"></span>
+        <button onclick="clearAllFilters()" class="text-xs text-rose-400 hover:text-rose-300 font-medium underline">清除</button>
+      </div>
+
+      <!-- 資源卡片網格 -->
+      <div id="apps-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+
+      <!-- 無資料提示 -->
+      <div id="no-data-alert" class="text-center py-16 bg-slate-800/20 border border-dashed border-slate-800 rounded-xl hidden">
+        <p class="text-5xl mb-4">📭</p>
+        <h3 class="text-lg font-bold text-slate-300">找不到符合條件的資源</h3>
+        <p class="text-sm text-slate-500 mt-1">試著調整搜尋條件或篩選條件</p>
+      </div>
+
+    </section>
+
+  </main>
+
+  <!-- 頁腳 -->
+  <footer class="border-t border-slate-800 bg-slate-950 py-6 text-center text-xs mt-auto space-y-3">
+    <div class="flex flex-wrap justify-center items-center gap-x-5 gap-y-1.5 text-slate-400 font-medium">
+      <span class="bg-slate-900 px-2.5 py-1 rounded-md border border-slate-800">v2.0 教學資源版</span>
+      <span class="bg-slate-900 px-2.5 py-1 rounded-md border border-slate-800">天主教海星高級中學</span>
+      <span class="bg-emerald-950/60 px-2.5 py-1 rounded-md border border-emerald-900/50 text-emerald-300 font-bold">📅 Updated: Jun 16, 2026</span>
+    </div>
+  </footer>
+
+  <!-- 使用說明彈窗 -->
+  <div id="instruction-modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-50 hidden">
+    <div class="bg-slate-800 border border-slate-700 rounded-2xl w-full max-w-3xl overflow-hidden shadow-2xl flex flex-col h-[85vh]">
+      <div class="p-6 border-b border-slate-700 flex items-center justify-between">
+        <h3 class="text-lg font-bold text-white">📖 使用說明</h3>
+        <button onclick="closeGuideModal()" class="text-slate-400 hover:text-white text-xl p-1">✕</button>
+      </div>
+      <div class="p-6 overflow-y-auto flex-grow space-y-4 text-sm text-slate-300">
+        <h4 class="font-bold text-white text-base">🎯 功能說明</h4>
+        <p>這是一個生物課程教學資源導覽平台，用於組織和展示高中生物教材、教案、影片、實驗與互動工具。</p>
+        
+        <h4 class="font-bold text-white text-base mt-4">⚙️ 管理編輯</h4>
+        <p>點擊右上角「⚙️ 管理編輯」開啟編輯模式，可以新增/編輯資源。修改完成後點擊「💾 匯出最新 HTML」下載更新後的檔案，再上傳至 GitHub。</p>
+        
+        <h4 class="font-bold text-white text-base mt-4">📚 資源分類</h4>
+        <ul class="list-disc pl-5 space-y-1">
+          <li><strong>課程年級</strong>：高一、高二、高三</li>
+          <li><strong>資源類型</strong>：教案、影片、實驗、習題、互動工具</li>
+          <li><strong>難度級別</strong>：基礎、進階</li>
+        </ul>
+      </div>
+      <div class="p-4 bg-slate-900 border-t border-slate-700 flex justify-end">
+        <button onclick="closeGuideModal()" class="bg-emerald-600 hover:bg-emerald-500 text-white font-medium px-5 py-2 rounded-lg transition text-xs">開始使用</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 分類編輯彈窗 -->
+  <div id="category-modal" class="fixed inset-0 bg-black/85 backdrop-blur-sm flex items-center justify-center p-4 z-50 hidden">
+    <div class="bg-slate-800 border border-slate-700 rounded-xl w-full max-w-md overflow-hidden shadow-2xl p-6 space-y-4">
+      <h3 id="category-modal-title" class="text-base font-bold text-white flex items-center gap-1.5"><span>➕</span> 新增資源類型</h3>
+      <div class="space-y-3 text-sm">
+        <div id="category-parent-field" class="space-y-1.5">
+          <label class="block text-xs font-semibold text-slate-400">所屬課程年級</label>
+          <select id="category-parent-select" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-slate-100 focus:outline-none focus:border-emerald-500 transition text-sm"></select>
+        </div>
+        <div class="space-y-1.5">
+          <label class="block text-xs font-semibold text-slate-400">類型代碼</label>
+          <input type="text" id="category-id-input" placeholder="例：teaching-plan" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-slate-100 focus:outline-none focus:border-emerald-500 transition text-sm">
+        </div>
+        <div class="space-y-1.5">
+          <label class="block text-xs font-semibold text-slate-400">類型名稱</label>
+          <input type="text" id="category-name-input" placeholder="例：📄 教案" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-slate-100 focus:outline-none focus:border-emerald-500 transition text-sm">
+        </div>
+      </div>
+      <div class="flex justify-between items-center pt-2">
+        <button id="category-delete-btn" onclick="deleteCategory(document.getElementById('category-id-input').value, true)" class="bg-rose-600 hover:bg-rose-500 text-white px-4 py-2 rounded-lg text-xs font-medium transition hidden">🗑️ 刪除</button>
+        <div class="flex gap-2 ml-auto">
+          <button onclick="closeCategoryModal()" class="bg-slate-700 hover:bg-slate-600 text-slate-200 px-4 py-2 rounded-lg text-xs font-medium transition">取消</button>
+          <button onclick="saveCategory()" class="bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 rounded-lg text-xs font-medium transition">儲存</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 資源編輯彈窗 -->
+  <div id="app-edit-modal" class="fixed inset-0 bg-black/85 backdrop-blur-sm flex items-center justify-center p-4 z-50 hidden">
+    <div class="bg-slate-800 border border-slate-700 rounded-xl w-full max-w-lg overflow-hidden shadow-2xl p-6 space-y-4">
+      <h3 id="app-modal-title" class="text-base font-bold text-white flex items-center gap-1.5"><span>➕</span> 新增教學資源</h3>
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
+        <div class="space-y-1.5">
+          <label class="block text-xs font-semibold text-slate-400">資源名稱</label>
+          <input type="text" id="app-title" placeholder="例：細胞構造與功能" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-slate-100 focus:outline-none focus:border-emerald-500 transition text-sm">
+        </div>
+        <div class="space-y-1.5">
+          <label class="block text-xs font-semibold text-slate-400">資源 ID</label>
+          <input type="text" id="app-id" placeholder="例：cell-structure" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-slate-100 focus:outline-none focus:border-emerald-500 transition text-sm">
+        </div>
+        <div class="space-y-1.5">
+          <label class="block text-xs font-semibold text-slate-400">課程年級</label>
+          <select id="app-large-cat" onchange="updateAppSubCatSelect()" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-slate-100 focus:outline-none focus:border-emerald-500 transition text-sm"></select>
+        </div>
+        <div class="space-y-1.5">
+          <label class="block text-xs font-semibold text-slate-400">資源類型</label>
+          <select id="app-sub-cat" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-slate-100 focus:outline-none focus:border-emerald-500 transition text-sm"></select>
+        </div>
+        <div class="space-y-1.5">
+          <label class="block text-xs font-semibold text-slate-400">難度等級</label>
+          <select id="app-type" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-slate-100 focus:outline-none focus:border-emerald-500 transition text-sm">
+            <option value="basic">基礎</option>
+            <option value="advanced">進階</option>
+          </select>
+        </div>
+        <div class="space-y-1.5">
+          <label class="block text-xs font-semibold text-slate-400">Emoji 圖示</label>
+          <input type="text" id="app-icon" placeholder="例：🧬" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-slate-100 focus:outline-none focus:border-emerald-500 transition text-sm">
+        </div>
+        <div class="space-y-1.5 col-span-1 sm:col-span-2">
+          <label class="block text-xs font-semibold text-slate-400">資源網址或路徑</label>
+          <input type="text" id="app-url" placeholder="例：https://... 或 apps/cell/index.html" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-slate-100 focus:outline-none focus:border-emerald-500 transition text-sm">
+        </div>
+        <div class="space-y-1.5">
+          <label class="block text-xs font-semibold text-slate-400">建立日期</label>
+          <input type="date" id="app-date" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-slate-100 focus:outline-none focus:border-emerald-500 transition text-sm">
+        </div>
+        <div class="space-y-1.5">
+          <label class="block text-xs font-semibold text-slate-400">課程章節</label>
+          <input type="text" id="app-chapter" placeholder="例：第2章 細胞構造" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-slate-100 focus:outline-none focus:border-emerald-500 transition text-sm">
+        </div>
+        <div class="space-y-1.5 col-span-1 sm:col-span-2">
+          <label class="block text-xs font-semibold text-slate-400">資源描述</label>
+          <textarea id="app-desc" rows="2" placeholder="說明此資源的內容和用途..." class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-slate-100 focus:outline-none focus:border-emerald-500 transition text-sm"></textarea>
+        </div>
+        <div class="space-y-1.5 col-span-1 sm:col-span-2">
+          <label class="block text-xs font-semibold text-slate-400">標籤（用逗號分隔）</label>
+          <input type="text" id="app-tags" placeholder="例：細胞膜, 細胞核, 線粒體" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-slate-100 focus:outline-none focus:border-emerald-500 transition text-sm">
+        </div>
+      </div>
+      <div class="flex justify-between items-center pt-2 border-t border-slate-700/50 mt-4">
+        <button id="app-delete-btn" onclick="deleteApp(document.getElementById('app-id').value)" class="bg-rose-600 hover:bg-rose-500 text-white px-4 py-2 rounded-lg text-xs font-medium transition hidden">🗑️ 刪除</button>
+        <div class="flex gap-2 ml-auto">
+          <button onclick="closeAppModal()" class="bg-slate-700 hover:bg-slate-600 text-slate-200 px-4 py-2 rounded-lg text-xs font-medium transition">取消</button>
+          <button onclick="saveApp()" class="bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 rounded-lg text-xs font-medium transition">儲存資源</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 匯出彈窗 -->
+  <div id="export-modal" class="fixed inset-0 bg-black/85 backdrop-blur-sm flex items-center justify-center p-4 z-50 hidden">
+    <div class="bg-slate-800 border border-slate-700 rounded-2xl w-full max-w-3xl h-[85vh] overflow-hidden shadow-2xl flex flex-col">
+      <div class="p-6 border-b border-slate-700 flex items-center justify-between">
+        <h3 class="text-base font-bold text-white flex items-center gap-1.5">
+          <span>💾</span> 匯出最新的 HTML 檔案
+        </h3>
+        <button onclick="closeExportModal()" class="text-slate-400 hover:text-white text-xl p-1">✕</button>
+      </div>
+      <div class="p-6 overflow-y-auto flex-grow space-y-4">
+        <p class="text-sm text-slate-400">複製下方程式碼或下載 HTML 檔案，上傳至 GitHub 即可更新資源內容。</p>
+        <textarea id="exported-code-area" readonly="" class="w-full h-80 bg-slate-950 border border-slate-800 rounded-xl p-4 font-mono text-xs text-emerald-400 focus:outline-none select-all"></textarea>
+      </div>
+      <div class="p-4 bg-slate-900 border-t border-slate-700 flex justify-end gap-2">
+        <button onclick="closeExportModal()" class="bg-slate-700 hover:bg-slate-600 text-slate-200 px-4 py-2 rounded-lg text-xs font-medium transition">關閉</button>
+        <button onclick="downloadHtmlFile()" class="bg-teal-600 hover:bg-teal-500 text-white px-4 py-2 rounded-lg text-xs font-medium transition">📥 下載 HTML</button>
+        <button onclick="copyExportedCode()" class="bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 rounded-lg text-xs font-medium transition">📋 複製程式碼</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let TEACHING_CONFIG = {
+  "categories": [
+    {
+      "id": "grade7",
+      "name": "🔵 國中部七年級",
+      "subcategories": [
+        { "id": "teaching-plan", "name": "📄 教案" },
+        { "id": "video", "name": "🎬 影片" },
+        { "id": "experiment", "name": "🧪 實驗" },
+        { "id": "inquiry", "name": "🔬 探究與實作" },
+        { "id": "practice", "name": "📝 習題" },
+        { "id": "interactive", "name": "🎮 互動工具" }
+      ]
+    },
+    {
+      "id": "grade10",
+      "name": "🔴 高一生物",
+      "subcategories": [
+        { "id": "teaching-plan", "name": "📄 教案" },
+        { "id": "video", "name": "🎬 影片" },
+        { "id": "experiment", "name": "🧪 實驗" },
+        { "id": "inquiry", "name": "🔬 探究與實作" },
+        { "id": "practice", "name": "📝 習題" },
+        { "id": "interactive", "name": "🎮 互動工具" }
+      ]
+    },
+    {
+      "id": "grade11",
+      "name": "🟡 高二生物",
+      "subcategories": [
+        { "id": "teaching-plan", "name": "📄 教案" },
+        { "id": "video", "name": "🎬 影片" },
+        { "id": "experiment", "name": "🧪 實驗" },
+        { "id": "inquiry", "name": "🔬 探究與實作" },
+        { "id": "practice", "name": "📝 習題" },
+        { "id": "interactive", "name": "🎮 互動工具" }
+      ]
+    },
+    {
+      "id": "grade12",
+      "name": "🟢 高三生物",
+      "subcategories": [
+        { "id": "teaching-plan", "name": "📄 教案" },
+        { "id": "video", "name": "🎬 影片" },
+        { "id": "inquiry", "name": "🔬 探究與實作" },
+        { "id": "practice", "name": "📝 習題" },
+        { "id": "exam-prep", "name": "📖 考試衝刺" }
+      ]
+    },
+    {
+      "id": "science-exhibition",
+      "name": "🏆 科展作品展示平台",
+      "subcategories": [
+        { "id": "junior-exhibition", "name": "🥇 國中科展作品" },
+        { "id": "senior-exhibition", "name": "🏅 高中科展作品" },
+        { "id": "exhibition-guide", "name": "📋 科展指南與資源" }
+      ]
+    }
+  ],
+  "resources": [
+    {
+      "id": "cell-structure",
+      "title": "細胞構造與功能",
+      "description": "介紹細胞膜、細胞核、線粒體等細胞器的構造與功能，附高倍顯微鏡影像。",
+      "largeCategory": "grade10",
+      "subCategory": "teaching-plan",
+      "difficulty": "basic",
+      "url": "resources/cell-structure.pdf",
+      "icon": "🧬",
+      "chapter": "第2章 細胞構造",
+      "tags": ["細胞膜", "細胞核", "線粒體", "葉綠體"],
+      "dateAdded": "2026-06-01"
+    },
+    {
+      "id": "junior-cell-inquiry",
+      "title": "細胞構造觀察——探究與實作課程",
+      "description": "國中七年級自然科，利用洋蔥表皮細胞和人類口腔細胞進行觀察實驗，包含完整的學習單和教師指引。",
+      "largeCategory": "grade7",
+      "subCategory": "inquiry",
+      "difficulty": "basic",
+      "url": "resources/junior-cell-inquiry.pdf",
+      "icon": "🔬",
+      "chapter": "第1章 細胞構造",
+      "tags": ["細胞觀察", "顯微鏡", "實驗操作", "學習單"],
+      "dateAdded": "2026-06-12"
+    },
+    {
+      "id": "photosynthesis-video",
+      "title": "光合作用實驗演示",
+      "description": "清楚展示光合作用的暗反應與光反應，包含實際的紡錘草實驗影片。",
+      "largeCategory": "grade10",
+      "subCategory": "video",
+      "difficulty": "basic",
+      "url": "https://youtube.com/watch?v=example",
+      "icon": "🌱",
+      "chapter": "第4章 光合作用",
+      "tags": ["光合作用", "光反應", "暗反應", "葉綠體"],
+      "dateAdded": "2026-06-05"
+    },
+    {
+      "id": "genetics-experiment",
+      "title": "遺傳實驗：果蠅雜交",
+      "description": "設計適合高中的果蠅遺傳實驗步驟，包括養殖、觀察與資料記錄表。",
+      "largeCategory": "grade11",
+      "subCategory": "experiment",
+      "difficulty": "advanced",
+      "url": "resources/fruit-fly-genetics.pdf",
+      "icon": "🪰",
+      "chapter": "第5章 遺傳學",
+      "tags": ["果蠅", "遺傳", "隱性性狀", "顯性性狀"],
+      "dateAdded": "2026-06-08"
+    },
+    {
+      "id": "ecology-practice",
+      "title": "生態系統習題組",
+      "description": "含食物鏈、能量流動、物質循環等題型，共30題選擇和5題綜合應用。",
+      "largeCategory": "grade11",
+      "subCategory": "practice",
+      "difficulty": "basic",
+      "url": "resources/ecology-questions.pdf",
+      "icon": "🌍",
+      "chapter": "第8章 生態系",
+      "tags": ["食物鏈", "能量流動", "生態金字塔", "碳循環"],
+      "dateAdded": "2026-06-10"
+    },
+    {
+      "id": "dna-interactive",
+      "title": "DNA 複製互動模擬",
+      "description": "網頁互動工具，讓學生操作 DNA 雙螺旋的拆解與複製過程，理解半保留複製。",
+      "largeCategory": "grade10",
+      "subCategory": "interactive",
+      "difficulty": "basic",
+      "url": "apps/dna-replication/index.html",
+      "icon": "🔬",
+      "chapter": "第3章 遺傳物質",
+      "tags": ["DNA", "複製", "雙螺旋", "半保留複製"],
+      "dateAdded": "2026-06-12"
+    },
+    {
+      "id": "evolution-teaching",
+      "title": "演化論教案與資料",
+      "description": "達爾文演化論的教學單元，包含馬島雀喙、工業黑化蛾等經典例子。",
+      "largeCategory": "grade11",
+      "subCategory": "teaching-plan",
+      "difficulty": "advanced",
+      "url": "resources/evolution-lesson.pdf",
+      "icon": "🦅",
+      "chapter": "第6章 演化",
+      "tags": ["自然選擇", "適應", "馬島雀", "工業黑化蛾"],
+      "dateAdded": "2026-06-14"
+    },
+    {
+      "id": "exam-prep-genetics",
+      "title": "學測總複習：遺傳學",
+      "description": "涵蓋孟德爾定律、連鎖與互換、伴性遺傳等，含詳細解題步驟與常見錯誤。",
+      "largeCategory": "grade12",
+      "subCategory": "exam-prep",
+      "difficulty": "advanced",
+      "url": "resources/gaokao-genetics.pdf",
+      "icon": "📚",
+      "chapter": "遺傳學總複習",
+      "tags": ["孟德爾定律", "連鎖", "互換", "伴性遺傳", "多對基因"],
+      "dateAdded": "2026-06-13"
+    },
+    {
+      "id": "human-system-video",
+      "title": "人體系統整合影片",
+      "description": "循環系統、消化系統、呼吸系統的功能與相互調控，動畫講解。",
+      "largeCategory": "grade12",
+      "subCategory": "video",
+      "difficulty": "basic",
+      "url": "https://youtube.com/watch?v=human-systems",
+      "icon": "❤️",
+      "chapter": "第7章 人體系統",
+      "tags": ["循環系統", "消化系統", "呼吸系統", "神經調控"],
+      "dateAdded": "2026-06-15"
+    },
+    {
+      "id": "genetics-inquiry-g10",
+      "title": "遺傳現象探究——高一探究與實作",
+      "description": "利用豌豆或番茄進行簡單的遺傳實驗，讓學生通過觀察、記錄、分析理解遺傳現象。含完整的實驗流程和資料分析步驟。",
+      "largeCategory": "grade10",
+      "subCategory": "inquiry",
+      "difficulty": "advanced",
+      "url": "resources/genetics-inquiry-g10.pdf",
+      "icon": "🌿",
+      "chapter": "第5章 遺傳現象",
+      "tags": ["豌豆實驗", "隱性性狀", "性狀分離", "數據分析"],
+      "dateAdded": "2026-06-16"
+    },
+    {
+      "id": "ecosystem-inquiry-g11",
+      "title": "生態系統調查——高二探究與實作",
+      "description": "實地調查校園或附近生態系統，鑑定物種、估算族群數量、分析食物鏈和能量流動。包含野外調查記錄表和數據分析方法。",
+      "largeCategory": "grade11",
+      "subCategory": "inquiry",
+      "difficulty": "advanced",
+      "url": "resources/ecosystem-inquiry-g11.pdf",
+      "icon": "🌳",
+      "chapter": "第8章 生態系統",
+      "tags": ["野外調查", "族群估算", "物種鑑定", "食物鏈"],
+      "dateAdded": "2026-06-16"
+    },
+    {
+      "id": "science-fair-2024-microplastic",
+      "title": "2024科展：微塑膠與浮水性植物",
+      "description": "學生研究微塑膠對水生植物生長的影響。通過對比實驗測量植物生長速率，探討環境污染對生態的衝擊。花蓮縣科展特優作品。",
+      "largeCategory": "science-exhibition",
+      "subCategory": "senior-exhibition",
+      "difficulty": "advanced",
+      "url": "resources/exhibition-2024-microplastic.pdf",
+      "icon": "🏅",
+      "chapter": "2024全國科展",
+      "tags": ["微塑膠", "水生植物", "環保", "特優作品"],
+      "dateAdded": "2026-06-01"
+    },
+    {
+      "id": "science-fair-2023-acid-rain",
+      "title": "2023科展：酸雨對植物光合作用的影響",
+      "description": "利用浮水葉片氧氣產生實驗，觀察不同 pH 值的酸雨對光合速率的影響。結合分光光度計進行定量分析。",
+      "largeCategory": "science-exhibition",
+      "subCategory": "senior-exhibition",
+      "difficulty": "advanced",
+      "url": "resources/exhibition-2023-acid-rain.pdf",
+      "icon": "🏆",
+      "chapter": "2023全國科展",
+      "tags": ["酸雨", "光合作用", "pH 值", "分光光度計"],
+      "dateAdded": "2026-06-02"
+    },
+    {
+      "id": "junior-exhibition-2024",
+      "title": "2024國中科展：食物營養價值檢測",
+      "description": "學生用簡易化學檢測法測試不同食物中的蛋白質、澱粉、脂肪含量。本作品獲國中組優選。",
+      "largeCategory": "science-exhibition",
+      "subCategory": "junior-exhibition",
+      "difficulty": "basic",
+      "url": "resources/junior-exhibition-2024-nutrition.pdf",
+      "icon": "🥇",
+      "chapter": "2024全國科展",
+      "tags": ["營養檢測", "食物成分", "化學測試", "優選作品"],
+      "dateAdded": "2026-06-03"
+    },
+    {
+      "id": "exhibition-guide-planning",
+      "title": "科展全攻略：從選題到展示",
+      "description": "完整的科展指南，涵蓋選題、假設、實驗設計、資料收集與分析、成果報告書撰寫，以及現場評審技巧。適合高中學生參考。",
+      "largeCategory": "science-exhibition",
+      "subCategory": "exhibition-guide",
+      "difficulty": "basic",
+      "url": "resources/exhibition-guide-complete.pdf",
+      "icon": "📋",
+      "chapter": "科展準備資源",
+      "tags": ["科展流程", "選題指南", "實驗設計", "報告撰寫"],
+      "dateAdded": "2026-06-04"
+    }
+  ]
+};
+
+    let currentLargeFilter = null;
+    let currentSubFilter = null;
+    let searchQuery = "";
+    let currentTypeFilter = "all";
+    let isAdminMode = false;
+    let editingCategoryType = null;
+    let editingCategoryObj = null;
+    let editingResourceId = null;
+
+    document.addEventListener("DOMContentLoaded", function() {
+      renderLargeCategories();
+      filterAndRenderResources();
+      
+      document.getElementById("search-input").addEventListener("input", function(e) {
+        searchQuery = e.target.value.trim().toLowerCase();
+        filterAndRenderResources();
+      });
+    });
+
+    function showToast(message, icon) {
+      icon = icon || "ℹ️";
+      const toast = document.getElementById("toast-notification");
+      document.getElementById("toast-icon").innerText = icon;
+      document.getElementById("toast-message").innerText = message;
+      toast.classList.remove("translate-x-72", "opacity-0");
+      toast.classList.add("translate-x-0", "opacity-100");
+      setTimeout(function() {
+        toast.classList.remove("translate-x-0", "opacity-100");
+        toast.classList.add("translate-x-72", "opacity-0");
+      }, 3000);
+    }
+
+    function setTypeFilter(type) {
+      currentTypeFilter = type;
+      ["all", "basic", "advanced"].forEach(function(t) {
+        const btn = document.getElementById("type-filter-" + t);
+        if (t === type) {
+          btn.className = "px-3 py-1.5 rounded-md font-medium bg-emerald-600 text-white transition";
+        } else {
+          btn.className = "px-3 py-1.5 rounded-md font-medium text-slate-400 hover:text-slate-200 transition";
+        }
+      });
+      filterAndRenderResources();
+    }
+
+    function toggleAdminMode() {
+      isAdminMode = !isAdminMode;
+      const banner = document.getElementById("admin-banner");
+      const toggleBtn = document.getElementById("admin-mode-toggle");
+      if (isAdminMode) {
+        banner.classList.remove("hidden");
+        toggleBtn.innerHTML = `🟢 <span class="hidden sm:inline">編輯中</span>`;
+        toggleBtn.classList.remove("bg-slate-800", "text-slate-300");
+        toggleBtn.classList.add("bg-emerald-600", "text-white");
+        document.getElementById("admin-add-large").classList.remove("hidden");
+        document.getElementById("admin-add-sub").classList.remove("hidden");
+        showToast("已開啟管理編輯模式", "⚙️");
+      } else {
+        banner.classList.add("hidden");
+        toggleBtn.innerHTML = `<span>⚙️</span> <span class="hidden sm:inline">管理編輯</span>`;
+        toggleBtn.classList.remove("bg-emerald-600", "text-white");
+        toggleBtn.classList.add("bg-slate-800", "text-slate-300");
+        document.getElementById("admin-add-large").classList.add("hidden");
+        document.getElementById("admin-add-sub").classList.add("hidden");
+      }
+      renderLargeCategories();
+      renderSubCategories();
+      filterAndRenderResources();
+    }
+
+    function renderLargeCategories() {
+      const menu = document.getElementById("large-category-menu");
+      let html = `
+        <button onclick="selectLargeCategory(null)" class="w-full text-left px-3 py-2 rounded-lg text-sm font-medium transition ${!currentLargeFilter ? 'bg-emerald-600 text-white' : 'text-slate-300 hover:bg-slate-800'}">
+          🌐 顯示全部 <span class="text-xs float-right">${TEACHING_CONFIG.resources.length}</span>
+        </button>
+      `;
+      TEACHING_CONFIG.categories.forEach(function(cat) {
+        const count = TEACHING_CONFIG.resources.filter(function(r) { return r.largeCategory === cat.id; }).length;
+        const isActive = currentLargeFilter === cat.id;
+        html += `
+          <div class="flex items-center justify-between group gap-1">
+            <button onclick="selectLargeCategory('${cat.id}')" class="flex-grow text-left px-3 py-2 rounded-lg text-sm font-medium transition ${isActive ? 'bg-emerald-600 text-white' : 'text-slate-300 hover:bg-slate-800'} min-w-0">
+              <span class="mr-1">${cat.name}</span>
+              <span class="text-xs float-right">${count}</span>
+            </button>
+            ${isAdminMode ? `<button onclick="openCategoryModal('${cat.id}', false)" class="w-8 h-8 flex items-center justify-center text-emerald-400 hover:text-white bg-slate-900 border border-slate-700 hover:border-emerald-500/50 rounded transition text-xs hidden">✏️</button>` : ''}
+          </div>
+        `;
+      });
+      menu.innerHTML = html;
+    }
+
+    function renderSubCategories() {
+      const subMenuContainer = document.getElementById("sub-category-menu");
+      if (!currentLargeFilter) {
+        subMenuContainer.innerHTML = `<p class="text-xs text-slate-500 italic">請先選擇課程年級</p>`;
+        return;
+      }
+      const activeCat = TEACHING_CONFIG.categories.find(function(c) { return c.id === currentLargeFilter; });
+      if (!activeCat || !activeCat.subcategories || activeCat.subcategories.length === 0) {
+        subMenuContainer.innerHTML = `<p class="text-xs text-slate-500 italic">此年級無子類別</p>`;
+        return;
+      }
+      let html = `<button onclick="selectSubCategory(null)" class="w-full text-left px-3 py-1.5 rounded transition text-slate-300 hover:text-slate-100 text-sm">● 顯示所有類型</button>`;
+      activeCat.subcategories.forEach(function(sub) {
+        const count = TEACHING_CONFIG.resources.filter(function(r) { return r.largeCategory === currentLargeFilter && r.subCategory === sub.id; }).length;
+        const isActive = currentSubFilter === sub.id;
+        html += `
+          <button onclick="selectSubCategory('${sub.id}')" class="w-full text-left px-3 py-1.5 rounded transition ${isActive ? 'text-emerald-400 font-bold' : 'text-slate-300 hover:text-slate-100'} text-sm">
+            ${sub.name} <span class="text-xs float-right">${count}</span>
+          </button>
+        `;
+      });
+      subMenuContainer.innerHTML = html;
+    }
+
+    function selectLargeCategory(catId) {
+      currentLargeFilter = catId;
+      currentSubFilter = null;
+      renderLargeCategories();
+      renderSubCategories();
+      filterAndRenderResources();
+    }
+
+    function selectSubCategory(subId) {
+      currentSubFilter = subId;
+      renderSubCategories();
+      filterAndRenderResources();
+    }
+
+    function openCategoryModal(catId, isSub) {
+      editingCategoryType = isSub ? 'sub' : 'large';
+      const modal = document.getElementById("category-modal");
+      const title = document.getElementById("category-modal-title");
+      const parentField = document.getElementById("category-parent-field");
+      const idInput = document.getElementById("category-id-input");
+      const nameInput = document.getElementById("category-name-input");
+      
+      if (isSub) {
+        title.innerHTML = catId ? `<span>✏️</span> 編輯資源類型` : `<span>➕</span> 新增資源類型`;
+        parentField.classList.remove("hidden");
+        const select = document.getElementById("category-parent-select");
+        select.innerHTML = TEACHING_CONFIG.categories.map(function(c) { return `<option value="${c.id}">${c.name}</option>`; }).join("");
+        if (catId) {
+          const parent = TEACHING_CONFIG.categories.find(function(c) { return c.subcategories.some(function(s) { return s.id === catId; }); });
+          const sub = parent ? parent.subcategories.find(function(s) { return s.id === catId; }) : null;
+          if (parent) select.value = parent.id;
+          idInput.value = sub ? sub.id : "";
+          nameInput.value = sub ? sub.name : "";
+          idInput.disabled = true;
+        } else {
+          idInput.value = "";
+          nameInput.value = "";
+          idInput.disabled = false;
+        }
+      } else {
+        title.innerHTML = catId ? `<span>✏️</span> 編輯課程年級` : `<span>➕</span> 新增課程年級`;
+        parentField.classList.add("hidden");
+        if (catId) {
+          const cat = TEACHING_CONFIG.categories.find(function(c) { return c.id === catId; });
+          idInput.value = cat ? cat.id : "";
+          nameInput.value = cat ? cat.name : "";
+          idInput.disabled = true;
+        } else {
+          idInput.value = "";
+          nameInput.value = "";
+          idInput.disabled = false;
+        }
+      }
+      modal.classList.remove("hidden");
+    }
+
+    function closeCategoryModal() {
+      document.getElementById("category-modal").classList.add("hidden");
+    }
+
+    function saveCategory() {
+      const idInput = document.getElementById("category-id-input").value.trim();
+      const nameInput = document.getElementById("category-name-input").value.trim();
+      if (!idInput || !nameInput) {
+        showToast("欄位不可為空", "⚠️");
+        return;
+      }
+      if (editingCategoryType === 'large') {
+        const exists = TEACHING_CONFIG.categories.find(function(c) { return c.id === idInput; });
+        if (exists && !exists.name) {
+          exists.name = nameInput;
+        } else if (!exists) {
+          TEACHING_CONFIG.categories.push({ id: idInput, name: nameInput, subcategories: [] });
+        }
+      } else {
+        const selectVal = document.getElementById("category-parent-select").value;
+        const targetParent = TEACHING_CONFIG.categories.find(function(c) { return c.id === selectVal; });
+        if (!targetParent) return;
+        const exists = targetParent.subcategories.find(function(s) { return s.id === idInput; });
+        if (exists) {
+          exists.name = nameInput;
+        } else {
+          targetParent.subcategories.push({ id: idInput, name: nameInput });
+        }
+      }
+      closeCategoryModal();
+      renderLargeCategories();
+      renderSubCategories();
+      showToast("分類已儲存", "✅");
+    }
+
+    function deleteCategory(catId, isSub) {
+      if (!confirm("確定要刪除此分類嗎？")) return;
+      if (!isSub) {
+        TEACHING_CONFIG.categories = TEACHING_CONFIG.categories.filter(function(c) { return c.id !== catId; });
+      } else {
+        TEACHING_CONFIG.categories.forEach(function(c) {
+          c.subcategories = c.subcategories.filter(function(s) { return s.id !== catId; });
+        });
+      }
+      closeCategoryModal();
+      renderLargeCategories();
+      renderSubCategories();
+      showToast("分類已刪除", "🗑️");
+    }
+
+    function openAppModal(resourceId) {
+      editingResourceId = resourceId;
+      const modal = document.getElementById("app-edit-modal");
+      const title = document.getElementById("app-modal-title");
+      const selectLarge = document.getElementById("app-large-cat");
+      selectLarge.innerHTML = TEACHING_CONFIG.categories.map(function(c) { return `<option value="${c.id}">${c.name}</option>`; }).join("");
+      if (resourceId) {
+        title.innerHTML = `<span>✏️</span> 編輯教學資源`;
+        const res = TEACHING_CONFIG.resources.find(function(a) { return a.id === resourceId; });
+        if (!res) return;
+        document.getElementById("app-id").value = res.id;
+        document.getElementById("app-id").disabled = true;
+        document.getElementById("app-title").value = res.title;
+        document.getElementById("app-large-cat").value = res.largeCategory;
+        updateAppSubCatSelect(res.subCategory);
+        document.getElementById("app-type").value = res.difficulty || "basic";
+        document.getElementById("app-url").value = res.url;
+        document.getElementById("app-icon").value = res.icon;
+        document.getElementById("app-date").value = res.dateAdded;
+        document.getElementById("app-desc").value = res.description;
+        document.getElementById("app-chapter").value = res.chapter || "";
+        document.getElementById("app-tags").value = res.tags.join(", ");
+        document.getElementById("app-delete-btn").classList.remove("hidden");
+      } else {
+        title.innerHTML = `<span>➕</span> 新增教學資源`;
+        document.getElementById("app-id").value = "";
+        document.getElementById("app-id").disabled = false;
+        document.getElementById("app-title").value = "";
+        document.getElementById("app-large-cat").value = currentLargeFilter || "";
+        updateAppSubCatSelect();
+        document.getElementById("app-type").value = "basic";
+        document.getElementById("app-url").value = "";
+        document.getElementById("app-icon").value = "📚";
+        document.getElementById("app-date").value = new Date().toISOString().split('T')[0];
+        document.getElementById("app-desc").value = "";
+        document.getElementById("app-chapter").value = "";
+        document.getElementById("app-tags").value = "";
+        document.getElementById("app-delete-btn").classList.add("hidden");
+      }
+      modal.classList.remove("hidden");
+    }
+
+    function updateAppSubCatSelect(selectedSubId) {
+      const parentId = document.getElementById("app-large-cat").value;
+      const selectSub = document.getElementById("app-sub-cat");
+      const cat = TEACHING_CONFIG.categories.find(function(c) { return c.id === parentId; });
+      if (cat && cat.subcategories && cat.subcategories.length > 0) {
+        selectSub.innerHTML = cat.subcategories.map(function(s) { return `<option value="${s.id}">${s.name}</option>`; }).join("");
+        if (selectedSubId) selectSub.value = selectedSubId;
+      } else {
+        selectSub.innerHTML = `<option value="">無子類別</option>`;
+      }
+    }
+
+    function closeAppModal() {
+      document.getElementById("app-edit-modal").classList.add("hidden");
+    }
+
+    function saveApp() {
+      const idVal = document.getElementById("app-id").value.trim();
+      const titleVal = document.getElementById("app-title").value.trim();
+      const largeCatVal = document.getElementById("app-large-cat").value;
+      const subCatVal = document.getElementById("app-sub-cat").value;
+      const typeVal = document.getElementById("app-type").value;
+      let urlVal = document.getElementById("app-url").value.trim();
+      const iconVal = document.getElementById("app-icon").value.trim();
+      const dateVal = document.getElementById("app-date").value;
+      const descVal = document.getElementById("app-desc").value.trim();
+      const chapterVal = document.getElementById("app-chapter").value.trim();
+      const tagsVal = document.getElementById("app-tags").value.trim();
+      const tagsArray = tagsVal ? tagsVal.split(",").map(function(t) { return t.trim(); }).filter(function(t) { return t !== ""; }) : [];
+
+      if (!idVal || !titleVal || !urlVal) {
+        showToast("必填欄位不可為空", "⚠️");
+        return;
+      }
+
+      if (!editingResourceId) {
+        const exists = TEACHING_CONFIG.resources.some(function(a) { return a.id === idVal; });
+        if (exists) {
+          showToast("此 ID 已存在", "⚠️");
+          return;
+        }
+        TEACHING_CONFIG.resources.push({
+          id: idVal, title: titleVal, description: descVal, largeCategory: largeCatVal,
+          subCategory: subCatVal, difficulty: typeVal, url: urlVal, icon: iconVal,
+          chapter: chapterVal, tags: tagsArray, dateAdded: dateVal
+        });
+        showToast(`已新增：${titleVal}`, "✅");
+      } else {
+        const res = TEACHING_CONFIG.resources.find(function(a) { return a.id === editingResourceId; });
+        if (res) {
+          res.title = titleVal;
+          res.description = descVal;
+          res.largeCategory = largeCatVal;
+          res.subCategory = subCatVal;
+          res.difficulty = typeVal;
+          res.url = urlVal;
+          res.icon = iconVal;
+          res.chapter = chapterVal;
+          res.tags = tagsArray;
+          res.dateAdded = dateVal;
+          showToast(`已更新：${titleVal}`, "✅");
+        }
+      }
+      closeAppModal();
+      filterAndRenderResources();
+      renderLargeCategories();
+    }
+
+    function deleteApp(resourceId) {
+      if (!confirm("確定要刪除此資源嗎？")) return;
+      TEACHING_CONFIG.resources = TEACHING_CONFIG.resources.filter(function(a) { return a.id !== resourceId; });
+      closeAppModal();
+      filterAndRenderResources();
+      showToast("資源已刪除", "🗑️");
+    }
+
+    function filterAndRenderResources() {
+      const grid = document.getElementById("apps-grid");
+      const noData = document.getElementById("no-data-alert");
+      
+      const filtered = TEACHING_CONFIG.resources.filter(function(res) {
+        if (currentLargeFilter && res.largeCategory !== currentLargeFilter) return false;
+        if (currentSubFilter && res.subCategory !== currentSubFilter) return false;
+        if (currentTypeFilter !== "all" && (res.difficulty || "basic") !== currentTypeFilter) return false;
+        if (searchQuery) {
+          const match = res.title.toLowerCase().includes(searchQuery) || 
+                       res.description.toLowerCase().includes(searchQuery) ||
+                       res.tags.some(function(t) { return t.toLowerCase().includes(searchQuery); });
+          if (!match) return false;
+        }
+        return true;
+      });
+
+      document.getElementById("filtered-count").innerText = filtered.length;
+      document.getElementById("total-count").innerText = TEACHING_CONFIG.resources.length;
+
+      updateFilterIndicators();
+
+      if (filtered.length === 0 && !isAdminMode) {
+        grid.innerHTML = "";
+        noData.classList.remove("hidden");
+        return;
+      }
+      noData.classList.add("hidden");
+
+      let cardsHtml = "";
+      if (isAdminMode) {
+        cardsHtml += `
+          <button onclick="openAppModal(null)" class="group bg-slate-800/10 hover:bg-slate-800/30 border-2 border-dashed border-slate-700 hover:border-emerald-500/50 rounded-2xl p-6 transition-all flex flex-col items-center justify-center text-center shadow-lg h-full min-h-[300px]">
+            <span class="text-4xl mb-3 group-hover:scale-125 transition">➕</span>
+            <span class="text-sm font-bold text-slate-300 group-hover:text-emerald-400 transition">新增教學資源</span>
+            <p class="text-xs text-slate-500 mt-2">點擊新增教案、影片或其他資源</p>
+          </button>
+        `;
+      }
+
+      filtered.forEach(function(res) {
+        const parentCat = TEACHING_CONFIG.categories.find(function(c) { return c.id === res.largeCategory; });
+        const subCat = parentCat ? parentCat.subcategories.find(function(s) { return s.id === res.subCategory; }) : null;
+        const gradeName = parentCat ? parentCat.name.replace(/^[^\w\s\u4e00-\u9fa5]+/, '').trim() : '其他';
+        const typeName = subCat ? subCat.name : '';
+        const difficultyBadge = res.difficulty === 'advanced' 
+          ? `<span class="text-[9px] font-bold text-orange-300 bg-orange-950/80 border border-orange-500/40 px-2 py-0.5 rounded-md">⭐ 進階</span>`
+          : `<span class="text-[9px] font-bold text-emerald-300 bg-emerald-950/80 border border-emerald-500/40 px-2 py-0.5 rounded-md">🟢 基礎</span>`;
+
+        const tagsHtml = res.tags.map(function(tag) {
+          return `<button onclick="filterByTag('${tag}')" class="inline-flex px-2 py-0.5 rounded text-xs font-medium bg-slate-800 text-slate-400 border border-slate-700/50 hover:border-emerald-500/50 hover:text-white transition">#${tag}</button>`;
+        }).join("");
+
+        cardsHtml += `
+          <div class="group bg-slate-800/40 hover:bg-slate-800/80 border border-slate-800 hover:border-emerald-500/50 rounded-2xl p-6 transition-all flex flex-col justify-between shadow-lg hover:shadow-emerald-500/5 relative overflow-hidden">
+            ${isAdminMode ? `<div class="absolute top-3 right-3 flex gap-1.5"><button onclick="openAppModal('${res.id}')" class="text-xs text-emerald-300 hover:text-white font-bold bg-slate-900/95 border border-slate-700 px-2.5 py-1 rounded transition">✏️ 編輯</button></div>` : ''}
+            <div>
+              <div class="flex items-start justify-between gap-4 mb-4">
+                <span class="text-4xl shrink-0 p-2 bg-slate-900 rounded-xl border border-slate-700/30 group-hover:scale-110 transition">${res.icon}</span>
+                <div class="text-right space-y-1">
+                  <span class="inline-block text-[10px] uppercase tracking-wider font-semibold text-emerald-400 bg-emerald-950/50 border border-emerald-900/50 px-2.5 py-1 rounded-full">
+                    ${gradeName} ${typeName ? `• ${typeName}` : ''}
+                  </span>
+                  <div>${difficultyBadge}</div>
+                </div>
+              </div>
+              <h3 class="text-base font-bold text-slate-100 group-hover:text-emerald-400 transition mb-2">${res.title}</h3>
+              <p class="text-xs text-slate-400 leading-relaxed mb-2">${res.chapter}</p>
+              <p class="text-xs text-slate-400 leading-relaxed mb-4 line-clamp-3">${res.description}</p>
+            </div>
+            <div class="space-y-4">
+              <div class="flex flex-wrap gap-1.5">${tagsHtml}</div>
+              <div class="border-t border-slate-800 pt-4 flex items-center justify-between">
+                <span class="text-[10px] text-slate-500">${res.dateAdded}</span>
+                <a href="${res.url}" ${res.url.startsWith('http') ? 'target="_blank"' : ''} class="inline-flex items-center gap-1 text-xs font-medium text-white bg-emerald-600 hover:bg-emerald-500 px-4 py-2 rounded-lg transition">進入資源 →</a>
+              </div>
+            </div>
+          </div>
+        `;
+      });
+      grid.innerHTML = cardsHtml;
+    }
+
+    function filterByTag(tag) {
+      searchQuery = tag.toLowerCase();
+      document.getElementById("search-input").value = tag;
+      filterAndRenderResources();
+    }
+
+    function updateFilterIndicators() {
+      const container = document.getElementById("filter-indicator");
+      if (!currentLargeFilter && !currentSubFilter && !searchQuery) {
+        container.classList.add("hidden");
+        return;
+      }
+      container.classList.remove("hidden");
+      let html = "";
+      if (currentLargeFilter) {
+        const cat = TEACHING_CONFIG.categories.find(function(c) { return c.id === currentLargeFilter; });
+        if (cat) {
+          html += `<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-900/80 text-emerald-200 border border-emerald-800">${cat.name}<button onclick="selectLargeCategory(null)" class="ml-1">✕</button></span>`;
+        }
+      }
+      if (searchQuery) {
+        html += `<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-slate-800 text-slate-200 border border-slate-700">"${searchQuery}"<button onclick="clearSearchInput()" class="ml-1">✕</button></span>`;
+      }
+      document.getElementById("filter-tags-container").innerHTML = html;
+    }
+
+    function clearSearchInput() {
+      searchQuery = "";
+      document.getElementById("search-input").value = "";
+      filterAndRenderResources();
+    }
+
+    function clearAllFilters() {
+      currentLargeFilter = null;
+      currentSubFilter = null;
+      searchQuery = "";
+      currentTypeFilter = "all";
+      document.getElementById("search-input").value = "";
+      setTypeFilter("all");
+      renderLargeCategories();
+      renderSubCategories();
+      filterAndRenderResources();
+    }
+
+    function generateHtmlSource() {
+      const cloneDoc = document.documentElement.cloneNode(true);
+      cloneDoc.querySelector("#large-category-menu").innerHTML = "";
+      cloneDoc.querySelector("#sub-category-menu").innerHTML = '<p class="text-xs text-slate-500 italic">請先選擇課程年級</p>';
+      cloneDoc.querySelector("#apps-grid").innerHTML = "";
+      cloneDoc.querySelector("#admin-banner").classList.add("hidden");
+      cloneDoc.querySelector("#instruction-modal").classList.add("hidden");
+      cloneDoc.querySelector("#category-modal").classList.add("hidden");
+      cloneDoc.querySelector("#app-edit-modal").classList.add("hidden");
+      cloneDoc.querySelector("#export-modal").classList.add("hidden");
+      let baseHtml = "<!DOCTYPE html>\n" + cloneDoc.outerHTML;
+      const configJson = JSON.stringify(TEACHING_CONFIG, null, 2);
+      const configRegex = /let\s+TEACHING_CONFIG\s*=\s*\{[\s\S]*?\};/m;
+      baseHtml = baseHtml.replace(configRegex, `let TEACHING_CONFIG = ${configJson};`);
+      return baseHtml;
+    }
+
+    function openExportModal() {
+      document.getElementById("exported-code-area").value = generateHtmlSource();
+      document.getElementById("export-modal").classList.remove("hidden");
+    }
+
+    function closeExportModal() {
+      document.getElementById("export-modal").classList.add("hidden");
+    }
+
+    function copyExportedCode() {
+      const textarea = document.getElementById("exported-code-area");
+      textarea.select();
+      if (document.execCommand('copy')) showToast("已複製至剪貼簿", "📋");
+    }
+
+    function downloadHtmlFile() {
+      const blob = new Blob([generateHtmlSource()], { type: "text/html;charset=utf-8" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = "biology-teaching-hub.html";
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+      showToast("HTML 下載成功", "📥");
+    }
+
+    function openGuideModal() {
+      document.getElementById("instruction-modal").classList.remove("hidden");
+    }
+
+    function closeGuideModal() {
+      document.getElementById("instruction-modal").classList.add("hidden");
+    }
+  </script>
+
+</body></html>
